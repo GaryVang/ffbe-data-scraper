@@ -74,28 +74,49 @@ function App() {
           }, {});
 
         setPassiveTextArea(JSON.stringify(unitPassiveSkills));
+        // console.log('uP: ', unitPassiveSkills);
         getAbility(unitPassiveSkills.skills);
       }
     });
   };
 
-  const getAbility = abilityList => {
-    // console.log(abilityList);
-
-    const abilityIdObj = _.mapValues(abilityList, (value, key) => {
+  const getAbility = unitAbilityList => {
+    //returns a list containing the abilities' id
+    const abilityIdObj = _.mapValues(unitAbilityList, (value, key) => {
       return value.id;
     });
 
     // console.log("abilityIdObj: ", abilityIdObj);
-    const abilityIdArr = _.values(abilityIdObj);
+    // const abilityIdArr = _.values(abilityIdObj);
 
-    console.log("abilityIdArr: ", abilityIdArr);
-
+    //searches and returns obj containing detailed info on selected unit's skills
     const detailedPassiveSkills = _.pickBy(passiveSkillList, (value, key) => {
-      return _.includes(abilityIdArr, parseInt(key));
+      return _.includes(abilityIdObj, parseInt(key));
+    });
+
+    const propFilter = {
+      name: null,
+      effects: null,
+      effects_raw: null
+    };
+
+    //removes unnecessary properties
+    const filteredPassiveSkills = _.mapValues(detailedPassiveSkills, obj => {
+      return _.pick(obj, _.keys(propFilter));
     });
 
     console.log("Detailed View: ", detailedPassiveSkills);
+    console.log("Filtered View: ", filteredPassiveSkills);
+
+    setPassiveTextArea(JSON.stringify(filteredPassiveSkills, null, 2));
+
+    //Use to format the filteredPassiveSkills
+    // const output = _.zipWith(key, value, (key, value)=> ({ key, value }));
+
+
+    // const arr1 = _.values(filteredPassiveSkills);
+    // console.log(_.toArray(filteredPassiveSkills));
+
   };
 
   const handleSearchFieldChange = e => {
