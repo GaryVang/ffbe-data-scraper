@@ -73,7 +73,7 @@ function App() {
             };
           }, {});
 
-        setPassiveTextArea(JSON.stringify(unitPassiveSkills));
+        // setPassiveTextArea(JSON.stringify(unitPassiveSkills));
         // console.log('uP: ', unitPassiveSkills);
         getAbility(unitPassiveSkills.skills);
       }
@@ -108,15 +108,72 @@ function App() {
     console.log("Detailed View: ", detailedPassiveSkills);
     console.log("Filtered View: ", filteredPassiveSkills);
 
-    setPassiveTextArea(JSON.stringify(filteredPassiveSkills, null, 2));
+    // setPassiveTextArea(JSON.stringify(filteredPassiveSkills, null, 2));
 
+    const test = _.mapValues(detailedPassiveSkills, obj => {
+      // console.log('test: ', obj);
+    });
+
+    // console.log(detailedPassiveSkills[912165]);
+    // console.log(detailedPassiveSkills[912165].effects);
+    // console.log(detailedPassiveSkills[912165].effects_raw);
+    // console.log('500 ', printArr(detailedPassiveSkills[100050].effects_raw));
+    // console.log('500 ', JSON.stringify(detailedPassiveSkills[100050].effects_raw));
+
+    //--------------------------------------------Test Code (remove when finished)--------------
+    // const mergeTest = _.merge(detailedPassiveSkills[100050].effects, detailedPassiveSkills[100050].effects_raw);
+    // const mergeTest = _.zipWith(
+    //   detailedPassiveSkills[912165].effects,
+    //   detailedPassiveSkills[912165].effects_raw,
+    //   (eff, eff_raw) => {
+    //     // ({effect, JSON.stringify(raw)})
+    //     const effects_raw = JSON.stringify(eff_raw);
+    //     const effects = eff;
+
+    //     return { effects, effects_raw };
+    //   }
+    // );
+    //----------------------------------------------------------
+
+    //Returns a more readable version of the skills to be displayed
+    const display_filteredPassiveSkills = _.mapValues(
+      filteredPassiveSkills,
+      obj => {
+        let effect_list = _.zipWith(
+          obj.effects,
+          obj.effects_raw,
+          (eff, eff_raw) => {
+            const effects_raw = JSON.stringify(eff_raw);
+            const effects = eff;
+
+            return { effects, effects_raw };
+          }
+        );
+
+        const name = obj.name;
+        // const effects = effect_list[0].effects;
+        // const effects_raw = effect_list[0].effects_raw;
+        // return { name, effects, effects_raw };
+        return { name, effect_list };
+      }
+    );
+
+    // console.log(mergeTest);
+    // setPassiveTextArea(JSON.stringify(mergeTest, null, 2));
+
+    setPassiveTextArea(JSON.stringify(display_filteredPassiveSkills, null, 2));
     //Use to format the filteredPassiveSkills
     // const output = _.zipWith(key, value, (key, value)=> ({ key, value }));
+  };
 
-
-    // const arr1 = _.values(filteredPassiveSkills);
-    // console.log(_.toArray(filteredPassiveSkills));
-
+  const printArr = arr => {
+    //remove if left unused by end of 2-28
+    let str = "";
+    for (let item of arr) {
+      if (Array.isArray(item)) str += printArr(item);
+      else str += item + ", ";
+    }
+    return str;
   };
 
   const handleSearchFieldChange = e => {
