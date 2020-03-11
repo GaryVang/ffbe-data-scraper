@@ -40,6 +40,19 @@ function App() {
     ) {
       setSearchField(searchField[0].toUpperCase() + searchField.slice(1));
     }
+    if (//update later to take capitalize any letters after a space
+      searchField.indexOf(" ") !== -1 &&
+      searchField.indexOf(" ") + 1 < searchField.length &&
+      searchField[searchField.indexOf(" ") + 1] !=
+        searchField[searchField.indexOf(" ") + 1].toUpperCase()
+    ) {
+      let index = searchField.indexOf(" ");
+      setSearchField(
+        searchField.slice(0, index + 1) +
+          searchField[index + 1].toUpperCase() +
+          searchField.slice(index + 2)
+      );
+    }
   }, [searchField]);
 
   const [unitTextArea, setUnitTextArea] = useState("");
@@ -184,6 +197,13 @@ function App() {
     setSearchField("");
   };
 
+  const handleKeyDown = e => {
+    // (e.key === 'Enter') ? handleSearch() :null;
+    if (e.key === "Enter") {
+      handleSearch();
+    }
+  };
+
   return (
     <div className="App" style={appStyle}>
       <label>FFBE Data Scrapper</label>
@@ -192,6 +212,7 @@ function App() {
           type="text"
           value={searchField}
           onChange={handleSearchFieldChange}
+          onKeyDown={handleKeyDown}
         />
         <button onClick={handleSearch}>Search</button>
         <button onClick={handleClear}>Clear</button>
