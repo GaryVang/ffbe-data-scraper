@@ -67,15 +67,16 @@ function App() {
         const unitInfo = Object.keys(value)
           .filter(key => allowed.includes(key))
           .reduce((obj, key) => {
-            //  console.log(obj);
+            //  console.log(key);
             return {
               ...obj,
-              [key]: value[key]
+              // [key]: value[key]
+              [key]: (key !== 'equip' ? value[key] : JSON.stringify(value[key]))
             };
           }, {});
 
         // console.log("fitlered: ", unitInfo);
-        setUnitTextArea(JSON.stringify(unitInfo));
+        setUnitTextArea(JSON.stringify(unitInfo, null, 2));
 
         const unitPassiveSkills = Object.keys(value)
           .filter(key => passives.includes(key))
@@ -86,8 +87,6 @@ function App() {
             };
           }, {});
 
-        // setPassiveTextArea(JSON.stringify(unitPassiveSkills));
-        // console.log('uP: ', unitPassiveSkills);
         getAbility(unitPassiveSkills.skills);
       }
     });
@@ -250,7 +249,7 @@ const appStyle = {
 
 const unitTextAreaStyle = {
   background: "white",
-  width: "600px",
+  width: "700px",
   height: "300px"
 };
 
