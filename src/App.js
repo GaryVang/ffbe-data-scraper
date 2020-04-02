@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./App.css";
+import "./components/dbInsert/FullInsert";
+import FullInsert from "./components/dbInsert/FullInsert";
 
 const axios = require("axios");
 const _ = require("lodash");
@@ -10,7 +12,10 @@ function App() {
   const URL_PASSIVES =
     "https://raw.githubusercontent.com/aEnigmatic/ffbe/master/skills_passive.json";
 
-  const URL_TEST = "https://jsonplaceholder.typicode.com/users";
+  const URL_EQUIPMENTS =
+    "https://raw.githubusercontent.com/aEnigmatic/ffbe/master/equipment.json";
+  const URL_MATERIAS =
+    "https://raw.githubusercontent.com/aEnigmatic/ffbe/master/materia.json";
 
   const [unitList, setUnitList] = useState("");
   useEffect(() => {
@@ -40,7 +45,8 @@ function App() {
     ) {
       setSearchField(searchField[0].toUpperCase() + searchField.slice(1));
     }
-    if (//update later to take capitalize any letters after a space
+    if (
+      //update later to take capitalize any letters after a space
       searchField.indexOf(" ") !== -1 &&
       searchField.indexOf(" ") + 1 < searchField.length &&
       searchField[searchField.indexOf(" ") + 1] !=
@@ -71,7 +77,7 @@ function App() {
             return {
               ...obj,
               // [key]: value[key]
-              [key]: (key !== 'equip' ? value[key] : JSON.stringify(value[key]))
+              [key]: key !== "equip" ? value[key] : JSON.stringify(value[key])
             };
           }, {});
 
@@ -236,9 +242,16 @@ function App() {
         value={passiveTextArea}
         readOnly
       />
+      <FullInsert 
+        URL_EQUIPMENTS = {URL_EQUIPMENTS}
+        URL_MATERIAS = {URL_MATERIAS}
+        URL_PASSIVES = {URL_PASSIVES}
+        URL_UNITS = {URL_UNITS}
+      />
     </div>
   );
 }
+
 
 const appStyle = {
   background: "lightblue",
