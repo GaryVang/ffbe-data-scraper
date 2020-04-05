@@ -6,26 +6,25 @@ const _ = require("lodash");
 
 const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS}) => {
     
+    //--------------------------Test Area
+
+    // useEffect(() => console.log('unit_stat: ', unit_stat), [unit_stat]);
+
+
+    //-------------------------End Test Area
 
     //Tables 19 total: 3 Core Tables, 15 sub, 1 subsub
     // insert order
     // prettier-ignore
-    const [unit, setUnit] = useState([]);
-    useEffect(() => console.log('unit: ', unit), [unit]);
-
-    const [unit_stat, setUnit_Stat] = useState([]);
-    useEffect(() => console.log('unit_stat: ', unit_stat), [unit_stat]);
-    const [unit_role, setUnit_Role] = useState([]);
-    useEffect(() => console.log('unit_role: ', unit_role), [unit_role]);
-
-
+    const [unit, setUnit] = useState([]); // 1 = completed
+    // useEffect(() => console.log('unit: ', unit), [unit]);
     const [equippable, setEquippable] = useState([]);
-    const [skill_passive, setSkill_Passive] = useState([]);
+    const [skill_passive, setSkill_Passive] = useState([]); // 1
     
 
         const[equipment, setEquipment] = useState([]);
         //next 1
-        // const [unit_stat, setUnit_Stat] = useState([]);
+        const [unit_stat, setUnit_Stat] = useState([]); // 1
         const [weapon, setWeapon] = useState([]);
         const [armor, setArmor] = useState([]);
         const [accessory, setAccessory] = useState([]);
@@ -36,11 +35,11 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS}) => 
             const [weapon_status_inflict, setWeapon_Status_Inflict] = useState([]);
             const [weapon_variance, setWeapon_Variance] = useState([]); // Make sure table is ready for insert
             const [equipment_option, setEquipment_Option] = useState([]);
-            const [skill_requirement, setSkill_Requirement] = useState([]);
+            const [skill_requirement, setSkill_Requirement] = useState([]); // 1
             const [equippable_skill, setEquippable_Skill] = useState([]);
-            const [skill_unit_restriction, setSkill_Unit_Restriction] = useState([]);
+            const [skill_unit_restriction, setSkill_Unit_Restriction] = useState([]); // 1
             const [unit_skill, setUnit_Skill] = useState([]);
-            // const [unit_role, setUnit_Role] = useState([]);
+            const [unit_role, setUnit_Role] = useState([]); // 1
                 //next 3
                 const [skill_enhancement, setSkill_Enhancement] = useState([]);
             
@@ -53,7 +52,7 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS}) => 
     const initialFetch = async () => {
         const units = (await axios.get(URL_UNITS)
             .then(res => res.data));
-        const passives = (await axios.get(URL_PASSIVES)
+        const skill_passives = (await axios.get(URL_PASSIVES)
             .then(res => res.data));
         const equipments = (await axios.get(URL_EQUIPMENTS)
             .then(res => res.data));
@@ -64,15 +63,79 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS}) => 
         _.forOwn(units, (value, key) => {
             // console.log(typeof key);
             // if(value.rarity_max === 7 && (key == 401006805 || key == 401008405)){
-            if(value.rarity_max === 7){
+            if(value.rarity_max === 7 && /^[a-zA-Z0-9- ]*$/.test(value.name) == true){
                 // console.log(key);
                 unitInsertPrep(value, key);
             }
+        });
 
+        _.forOwn(skill_passives, (value, key) => {
+            if(/^[a-zA-Z0-9- ]*$/.test(value.name) == true){
+                skillPassivesInsertPrep(value, key);
+            }
+        });
+
+        _.forOwn(equipments, (value, key) => {
+            if(/^[a-zA-Z0-9- ]*$/.test(value.name) == true){
+                equipmentsInsertPrep(value, key);
+            }
+        });
+
+        _.forOwn(materias, (value, key) => {
+            if(/^[a-zA-Z0-9- ]*$/.test(value.name) == true){
+                materiasInsertPrep(value, key);
+            }
         });
     };
 
-    const unitInsertPrep =  async (value, key) => {
+    const skillPassivesInsertPrep = (value, key) => {
+        setSkill_Passive(oldInfo => [...oldInfo, {
+            skill_id: parseInt(key),
+            name: value.name,
+            rarity: value.rarity,
+            effect: value.effects,
+            effect_code: value.effects_raw,
+            limited: value.unique
+        }]);
+
+        if(value.unit_restriction != null){
+            for(let i=0; i<(value.unit_restriction).length; i++){
+                setSkill_Unit_Restriction(oldInfo => [...oldInfo, {
+                    skill_id: parseInt(key),
+                    unit_id: value.unit_restriction[i]
+                }])
+            }
+        }
+
+        if(value.requirements != null){
+            for(let i=0; i<(value.requirements).length;i++){
+                for(let j=0; j<(value.requirements[i]).length;j++){
+                    if(value.requirements[i][0] !== "SWITCH"){
+                        setSkill_Requirement(oldInfo => [...oldInfo, {
+                            skill_id: parseInt(key),
+                            requirement: value.requirements[i][0],
+                            eq_id: value.requirements[i][1]
+                        }]);
+                    }
+                }
+            }
+        }
+    };
+
+    const equipmentsInsertPrep = (value, key) => {
+
+    };
+
+    const materiasInsertPrep = (value, key) => {
+
+    };
+
+    const unitInsertPrep = async (value, key) => {
+        // if(value.sTMR == null){
+        //     console.log('stmr: ', value.sTMR);
+        //     console.log('key: ', key);
+        // }
+        
         let unitTable = {unit_id: parseInt(key), name: value.name, sex: value.sex,
             game: value.game, tmr: value.TMR[1], stmr: value.sTMR[1]};
         setUnit(oldArray => [...oldArray, unitTable]);
