@@ -7,9 +7,9 @@ const _ = require("lodash");
 const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS}) => {
     
     //--------------------------Test Area
-
-    // useEffect(() => console.log('unit_stat: ', unit_stat), [unit_stat]);
-
+   
+    // const [armor, setArmor] = useState([]);
+    // useEffect(() => console.log('equipment: ', armor), [armor]);
 
     //-------------------------End Test Area
 
@@ -17,31 +17,32 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS}) => 
     // insert order
     // prettier-ignore
     const [unit, setUnit] = useState([]); // 1 = completed
-    // useEffect(() => console.log('unit: ', unit), [unit]);
-    const [equippable, setEquippable] = useState([]);
+    const [equippable, setEquippable] = useState([]); // 1 but need a test
     const [skill_passive, setSkill_Passive] = useState([]); // 1
     
 
-        const[equipment, setEquipment] = useState([]);
+        const[equipment, setEquipment] = useState([]); // 1
         //next 1
         const [unit_stat, setUnit_Stat] = useState([]); // 1
         const [weapon, setWeapon] = useState([]);
-        const [armor, setArmor] = useState([]);
-        const [accessory, setAccessory] = useState([]);
-        const [materia, setMateria] = useState([]);
+        const [armor, setArmor] = useState([]); // 1
+        const [accessory, setAccessory] = useState([]); // 1
+        const [materia, setMateria] = useState([]); // 1
             //next 2
-            const [materia_unit_restriction, setMateria_Unit_Restriction] = useState([]);
+            const [materia_unit_restriction, setMateria_Unit_Restriction] = useState([]); // 1
             const [weapon_element_inflict, setWeapon_Element_Inflict] = useState([]);
             const [weapon_status_inflict, setWeapon_Status_Inflict] = useState([]);
             const [weapon_variance, setWeapon_Variance] = useState([]); // Make sure table is ready for insert
-            const [equipment_option, setEquipment_Option] = useState([]);
+            const [equipment_option, setEquipment_Option] = useState([]); // 1
             const [skill_requirement, setSkill_Requirement] = useState([]); // 1
-            const [equippable_skill, setEquippable_Skill] = useState([]);
+            const [equippable_skill, setEquippable_Skill] = useState([]); // .5 ; do equipment
             const [skill_unit_restriction, setSkill_Unit_Restriction] = useState([]); // 1
             const [unit_skill, setUnit_Skill] = useState([]);
             const [unit_role, setUnit_Role] = useState([]); // 1
                 //next 3
                 const [skill_enhancement, setSkill_Enhancement] = useState([]);
+                const [equipment_unit_requirement, setEquipment_Unit_Requirement] = useState([]); // 1
+                const [equipment_sex_requirement, setEquipment_Sex_Requirement] = useState([]); // 1
             
 
     const handleOnClick = () => {
@@ -50,43 +51,65 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS}) => 
     };
 
     const initialFetch = async () => {
-        const units = (await axios.get(URL_UNITS)
+        const unitsList = (await axios.get(URL_UNITS)
             .then(res => res.data));
-        const skill_passives = (await axios.get(URL_PASSIVES)
+        const skillPassivesList = (await axios.get(URL_PASSIVES)
             .then(res => res.data));
-        const equipments = (await axios.get(URL_EQUIPMENTS)
+        const equipmentsList = (await axios.get(URL_EQUIPMENTS)
             .then(res => res.data));
-        const materias = (await axios.get(URL_MATERIAS)
+        const materiasList = (await axios.get(URL_MATERIAS)
             .then(res => res.data));
 
 
-        _.forOwn(units, (value, key) => {
+        _.forOwn(unitsList, (value, key) => {
             // console.log(typeof key);
             // if(value.rarity_max === 7 && (key == 401006805 || key == 401008405)){
-            if(value.rarity_max === 7 && /^[a-zA-Z0-9- ]*$/.test(value.name) == true){
+            if(value.rarity_max === 7 && /^[a-zA-Z0-9-()'+&è ]*$/.test(value.name) == true){
                 // console.log(key);
                 unitInsertPrep(value, key);
             }
         });
 
-        _.forOwn(skill_passives, (value, key) => {
-            if(/^[a-zA-Z0-9- ]*$/.test(value.name) == true){
+        _.forOwn(skillPassivesList, (value, key) => {
+            if(/^[a-zA-Z0-9-()'+&è ]*$/.test(value.name) == true){
                 skillPassivesInsertPrep(value, key);
             }
         });
 
-        _.forOwn(equipments, (value, key) => {
-            if(/^[a-zA-Z0-9- ]*$/.test(value.name) == true){
+        _.forOwn(equipmentsList, (value, key, skillPassivesList) => {
+            // if(/^[a-zA-Z0-9- ]*$/.test(value.name) == true && key == 403041100){
+            if(/^[a-zA-Z0-9-()'+&è.Üá:ô  ]*$/.test(value.name) == true){
                 equipmentsInsertPrep(value, key);
-            }
+            } 
+            // else{
+            //     console.log(value.name);
+            // }
         });
 
-        _.forOwn(materias, (value, key) => {
-            if(/^[a-zA-Z0-9- ]*$/.test(value.name) == true){
+        _.forOwn(materiasList, (value, key) => {
+            if(/^[a-zA-Z0-9-()'+&è ]*$/.test(value.name) == true && hasPassiveSkill(value, key, skillPassivesList)){
                 materiasInsertPrep(value, key);
             }
         });
     };
+
+    const hasPassiveSkill = (value, key, skillPassivesList) => {
+        let pFlag = false;
+        // if(key == 504010010){
+        //     console.log( key);
+        // }
+        for(let i=0; i<(value.skills).length;i++){
+            if( _.has(skillPassivesList, value.skills[i].toString()) ){
+                // console.log(value.name);
+                setEquippable_Skill(oldInfo => [...oldInfo, {
+                    eq_id: parseInt(key),
+                    skill_id: value.skills[i]
+                }]);
+                pFlag = true;
+            }
+        }
+        return pFlag;
+    }
 
     const skillPassivesInsertPrep = (value, key) => {
         setSkill_Passive(oldInfo => [...oldInfo, {
@@ -110,7 +133,7 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS}) => 
         if(value.requirements != null){
             for(let i=0; i<(value.requirements).length;i++){
                 for(let j=0; j<(value.requirements[i]).length;j++){
-                    if(value.requirements[i][0] !== "SWITCH"){
+                    if(value.requirements[i][0] !== "SWITCH"){ // SWITCH = unlocks via SBB (Series Boss Battle)
                         setSkill_Requirement(oldInfo => [...oldInfo, {
                             skill_id: parseInt(key),
                             requirement: value.requirements[i][0],
@@ -122,21 +145,214 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS}) => 
         }
     };
 
-    const equipmentsInsertPrep = (value, key) => {
+    const equipmentsInsertPrep = (value, key, skillPassivesList) => {
+        
+        let elArr = [0,0,0,0,0,0,0,0];
+        let statusArr = [0,0,0,0,0,0,0,0];
 
+        if(value.stats.element_resist != null){
+            for(let el in value.stats.element_resist){
+                switch(el) {
+                    case "Fire":
+                        elArr[0] = value.stats.element_resist[el];
+                        break;
+                    case "Ice":
+                        elArr[1] = value.stats.element_resist[el];
+                        break;
+                    case "Lightning":
+                            elArr[2] = value.stats.element_resist[el];
+                            break;
+                    case "Water":
+                        elArr[3] = value.stats.element_resist[el];
+                        break;
+                    case "Wind":
+                        elArr[4] = value.stats.element_resist[el];
+                        break;
+                    case "Earth":
+                        elArr[5] = value.stats.element_resist[el];
+                        break;
+                    case "Light":
+                        elArr[6] = value.stats.element_resist[el];
+                        break;
+                    case "Dark":
+                        elArr[7] = value.stats.element_resist[el];
+                        break;
+                }
+            }
+        }
+
+        if(value.stats.status_resist != null){
+            for(let el in value.stats.status_resist){
+                switch(el) {
+                    case "Poison":
+                        statusArr[0] = value.stats.status_resist[el];
+                        break;
+                    case "Blind":
+                        statusArr[1] = value.stats.status_resist[el];
+                        break;
+                    case "Sleep":
+                            statusArr[2] = value.stats.status_resist[el];
+                            break;
+                    case "Silence":
+                        statusArr[3] = value.stats.status_resist[el];
+                        break;
+                    case "Paralyze":
+                        statusArr[4] = value.stats.status_resist[el];
+                        break;
+                    case "Confusion":
+                        statusArr[5] = value.stats.status_resist[el];
+                        break;
+                    case "Disease":
+                        statusArr[6] = value.stats.status_resist[el];
+                        break;
+                    case "Petrify":
+                        statusArr[7] = value.stats.status_resist[el];
+                        break;
+                }
+            }
+        }
+
+        // console.log(value.name);
+        // console.log(statusArr);
+        setEquippable(oldInfo => [...oldInfo, {
+            eq_id: parseInt(key),
+            name: value.name
+        }]);
+        
+        setEquipment(oldInfo => [...oldInfo, {
+            equipment_id: parseInt(key),
+            rarity: value.rarity,
+            hp: value.stats.HP,
+            mp: value.stats.MP,
+            atk: value.stats.ATK,
+            def: value.stats.DEF,
+            mag: value.stats.MAG,
+            spr: value.stats.SPR,
+            fire_resist: elArr[0],
+            ice_resist: elArr[1],
+            lightning_resist: elArr[2],
+            water_resist: elArr[3],
+            wind_resist: elArr[4],
+            earth_resist: elArr[5],
+            light_resist: elArr[6],
+            dark_resist: elArr[7],
+            poison_resist: statusArr[0],
+            blind_resist: statusArr[1],
+            sleep_resist: statusArr[2],
+            silence_resist: statusArr[3],
+            paralyze_resist: statusArr[4],
+            confusion_resist: statusArr[5],
+            disease_resist: statusArr[6],
+            petrify_resist: statusArr[7]
+        }]);
+
+        // Handles requirements
+        if(value.requirements != null){ 
+            switch(value.requirements[0]) {
+                case "UNIT_ID":
+                    // console.log(1);
+                    if( Object.prototype.toString.call( value.requirements[1] ) !== '[object Array]' ) {
+                        setEquipment_Unit_Requirement(oldInfo => [...oldInfo, {
+                            equipment_id: parseInt(key),
+                            unit_id: value.requirements[1]
+                        }]);
+                    } else {
+                        for(let i=0;i<(value.requirements[1]).length;i++){
+                            setEquipment_Unit_Requirement(oldInfo => [...oldInfo, {
+                                equipment_id: parseInt(key),
+                                unit_id: value.requirements[1][i]
+                            }]);
+                        }
+                    }
+                    break;
+                case "SEX":
+                    if( Object.prototype.toString.call( value.requirements[1] ) !== '[object Array]' ) {
+                        setEquipment_Sex_Requirement(oldInfo => [...oldInfo, {
+                            equipment_id: parseInt(key),
+                            sex_id: value.requirements[1]
+                        }])
+                    } else {
+                        for(let i=0;i<(value.requirements[1]).length;i++){
+                            setEquipment_Unit_Requirement(oldInfo => [...oldInfo, {
+                                equipment_id: parseInt(key),
+                                sex_id: value.requirements[1][i]
+                            }]);
+                        }
+                    }
+                    break;
+            }
+        }
+
+
+
+        if(value.type_id <= 16 && value.type_id > 0){
+            setWeapon(oldInfo => [...oldInfo, {
+                weapon_id: parseInt(key),
+                type: value.type_id,
+                is_twohanded: value.is_twohanded,
+                accuracy: value.accuracy,
+                variance_id: getVariance(value.type_id, value.is_twohanded, value.dmg_variance)
+            }]);
+        } else if (value.type_id === 30 
+            || value.type_id === 31 
+            || value.type_id === 40
+            || value.type_id === 41
+            || value.type_id === 50
+            || value.type_id === 51
+            || value.type_id === 52
+            || value.type_id === 53){
+            setArmor(oldInfo => [...oldInfo, {
+                armor_id: parseInt(key),
+                type: value.type_id
+            }]);
+        } else if(value.type_id === 60){
+            // console.log (value.name);
+            setAccessory(oldInfo => [...oldInfo, {
+                acc_id: parseInt(key),
+                type: value.type_id
+            }]);
+        }
     };
 
-    const materiasInsertPrep = (value, key) => {
+    const getVariance = (type_id, is_twohanded, dmg_variance) => {
+        if(dmg_variance == null){
 
+        } else {
+            // setWeapon_Variance
+        }
+
+        return 0;
     };
 
-    const unitInsertPrep = async (value, key) => {
+    const materiasInsertPrep = (value, key) => { 
+        // console.log(typeof value.unique);
+        setMateria(oldInfo => [...oldInfo, {
+            mat_id: parseInt(key),
+            limted: value.unique
+        }]);
+
+        setEquippable(oldInfo => [...oldInfo, {
+            eq_id: parseInt(key),
+            name: value.name
+        }]);
+
+        if(value.unit_restriction != null) {
+            for(let i=0;i<(value.unit_restriction).length;i++){
+                setMateria_Unit_Restriction(oldInfo => [...oldInfo, {
+                    mat_id: parseInt(key),
+                    unit_restriction: value.unit_restriction[i]
+                }]);
+            }
+        }
+    };
+
+    const unitInsertPrep = (value, key) => {
         // if(value.sTMR == null){
         //     console.log('stmr: ', value.sTMR);
         //     console.log('key: ', key);
         // }
         
-        let unitTable = {unit_id: parseInt(key), name: value.name, sex: value.sex,
+        let unitTable = {unit_id: parseInt(key), name: value.name, sex: value.sex_id,
             game: value.game, tmr: value.TMR[1], stmr: value.sTMR[1]};
         setUnit(oldArray => [...oldArray, unitTable]);
 
@@ -202,6 +418,15 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS}) => 
             }
         });
         
+        // if(value.equip != null){
+            for(let i=0; i<(value.equip).length;i++){
+                setEquipment_Option(oldInfo => [...oldInfo, {
+                    unit_id: parseInt(key),
+                    equipment_type: value.equip[i]
+                }]);
+            }
+        // }
+
     };
 
     return (
