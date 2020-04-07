@@ -4,12 +4,12 @@ const _ = require("lodash");
 // import './FullInsert.css';
 
 
-const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS}) => {
+const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_ENHANCEMENTS}) => {
     
     //--------------------------Test Area
    
-    // const [equippable, setEquippable] = useState([]); // 1 but needs a test; 1st test successful
-    // useEffect(() => console.log('equipment: ', equippable), [equippable]);
+    // const [skill_enhancement, setSkill_Enhancement] = useState([]);
+    // useEffect(() => console.log('equipment: ', skill_enhancement), [skill_enhancement]);
 
     //-------------------------End Test Area
 
@@ -24,7 +24,7 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS}) => 
         const[equipment, setEquipment] = useState([]); // 1
         //next 1
         const [unit_stat, setUnit_Stat] = useState([]); // 1
-        const [weapon, setWeapon] = useState([]);
+        const [weapon, setWeapon] = useState([]); // 1 ; Note: variance_id is set to 1 (if dmg_variance != null)
         const [armor, setArmor] = useState([]); // 1
         const [accessory, setAccessory] = useState([]); // 1
         const [materia, setMateria] = useState([]); // 1
@@ -32,15 +32,15 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS}) => 
             const [materia_unit_restriction, setMateria_Unit_Restriction] = useState([]); // 1
             const [weapon_element_inflict, setWeapon_Element_Inflict] = useState([]); // 1
             const [weapon_status_inflict, setWeapon_Status_Inflict] = useState([]); // 1
-            const [weapon_variance, setWeapon_Variance] = useState([]); // Make sure table is ready for insert
+            const [weapon_variance, setWeapon_Variance] = useState([]); // 0 : On hold until needed
             const [equipment_option, setEquipment_Option] = useState([]); // 1
             const [skill_requirement, setSkill_Requirement] = useState([]); // 1
             const [equippable_skill, setEquippable_Skill] = useState([]); // 1 Tests for both mat and eq completed
             const [skill_unit_restriction, setSkill_Unit_Restriction] = useState([]); // 1
-            const [unit_skill, setUnit_Skill] = useState([]);
+            const [unit_skill, setUnit_Skill] = useState([]); // 1
             const [unit_role, setUnit_Role] = useState([]); // 1
                 //next 3
-                const [skill_enhancement, setSkill_Enhancement] = useState([]);
+                const [skill_enhancement, setSkill_Enhancement] = useState([]); // 1
                 const [equipment_unit_requirement, setEquipment_Unit_Requirement] = useState([]); // 1
                 const [equipment_sex_requirement, setEquipment_Sex_Requirement] = useState([]); // 1
             
@@ -59,14 +59,26 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS}) => 
             .then(res => res.data));
         const materiasList = (await axios.get(URL_MATERIAS)
             .then(res => res.data));
+        const enhancementsList = (await axios.get(URL_ENHANCEMENTS)
+            .then(res => res.data));
+
+
+            // _.forOwn(enhancementsList, (value, key) => {
+            //     if(value.units.length >1){
+            //         console.log(key);
+            //     }
+            // });
+
 
 
         _.forOwn(unitsList, (value, key) => {
             // console.log(typeof key);
             // if(value.rarity_max === 7 && (key == 401006805 || key == 401008405)){
-            if(value.rarity_max === 7 && /^[a-zA-Z0-9-()'+&è.é ]*$/.test(value.name) == true){
+
+            // undefined check required due to the dev adding unit placeholders wtih incomplete information
+            if(value.rarity_max === 7 && /^[a-zA-Z0-9-()'+&è.é ]*$/.test(value.name) == true && value.skills !== undefined){
                 // console.log(key);
-                unitInsertPrep(value, key);
+                unitInsertPrep(value, key, skillPassivesList, enhancementsList);
             }
             // else if (value.rarity_max === 7){ // Test rejected units for unspecified special characters
             //     console.log(value.name);
@@ -86,9 +98,17 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS}) => 
         });
 
         
-//-------------------------------------------------------------------------------------------------------------Requires API setup to complete
-        // Inserts all possible weapon variances into TABLE weapon_variance
-        // Then retrieves it.
+//--------------------------------------Requires API setup to complete
+// Unused, so left incomplete
+// Purpose: Gathers all possible variances from all weapons and stores into array in preparation for insert/update into TABLE weapon_variance.
+// Status: Ready to be inserted into TABLE weapon_variance
+// To-do:   -Setup API to handle insert/update into TABLE weapon_variance
+//          -Query DB for weapon_variance TABLE and retreive COLUMNS: variance_id, lower_limit, upper_limit, and type
+//          -Write a function that compares weapon's variance, (if not null), and returns the approriate variance_id: getVariance()
+//              that matches these 3 columns:lower_limit, upper_limit, and type
+        
+// Inserts all possible weapon variances into TABLE weapon_variance
+
         let dmgVarArr = [];
         _.forOwn(equipmentsList, (value, key) => {
             if(/^[a-zA-Z0-9-()'+&è.Üá:ô\s ]*$/.test(value.name) == true && 
@@ -104,9 +124,9 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS}) => 
                 } 
             } 
         });
-        // console.log(dmgVarArr);
+        
         // Retrieve updated list of weapon_variances via api call
-
+//----------------End of weapon_variance
 
         _.forOwn(equipmentsList, (value, key) => {
             // if(/^[a-zA-Z0-9- ]*$/.test(value.name) == true && key == 403041100){
@@ -374,16 +394,13 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS}) => 
                 acc_id: parseInt(key),
                 type: value.type_id
             }]);
-        }
-
-        // if(value.is_twohanded === false){
-        //     console.log(key, value.dmg_variance);
-        // }
-
-        
+        }    
         
     };
 
+    //----------------------------------------Unfinished
+    // Complete when needed
+    // State: Returns to 1 for cases that provide their own variances
     const getVariance = (type_id, is_twohanded, dmg_variance) => {
         if(dmg_variance == null){
             if(is_twohanded === false){
@@ -422,16 +439,17 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS}) => 
                         return 25;
                 }
             } else { // Currently this block is unreachable, thus unused, due to no cases
-                return 0;
+                return 1;
             }
-        } else {// setWeapon_Variance
+        } else {// setWeapon_Variance if not null
             // update list of variance with insert statement
             // retrieve list of variances from api is up-to-date
-            
+            return 1;
         }
-
-        return 0;
+        // return 1;
     };
+
+    //-------------------------End of getVariance
 
     const materiasInsertPrep = (value, key) => { 
         // console.log(typeof value.unique);
@@ -455,11 +473,32 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS}) => 
         }
     };
 
-    const unitInsertPrep = (value, key) => {
-        // if(value.sTMR == null){
-        //     console.log('stmr: ', value.sTMR);
-        //     console.log('key: ', key);
-        // }
+    // Checks ability for enhancements,
+    // if true, it will add it to skill_enhancement
+    const checkEnhancement = (unit_id, skill_id, enhancementsList) => { 
+        _.forOwn(enhancementsList, (value, key) => {
+            if(value.skill_id_old === skill_id && _.includes(value.units, parseInt(unit_id))){
+                let skill_1 = value.skill_id_new;
+                _.forOwn(enhancementsList, (value, key) => {
+                    if(value.skill_id_old === skill_1 && _.includes(value.units, parseInt(unit_id))){
+                        // console.log(name, key, value.skill_id_old);
+                        // console.log(name, unit_id, skill_id, skill_1, value.skill_id_new);
+                        setSkill_Enhancement(oldInfo => [...oldInfo, {
+                            unit_id: parseInt(unit_id),
+                            skill_base: skill_id,
+                            skill_1: skill_1,
+                            skill_2: value.skill_id_new
+                        }]);
+                    }
+                });
+            }
+            
+        });
+
+        
+    };
+
+    const unitInsertPrep = (value, key, skillPassivesList, enhancementsList) => {
         
         let unitTable = {unit_id: parseInt(key), name: value.name, sex: value.sex_id,
             game: value.game, tmr: value.TMR[1], stmr: value.sTMR[1]};
@@ -476,6 +515,35 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS}) => 
         }
         //------------------------End of unit_role
         
+        // if(key === "401006805"){
+        if(value.skills === undefined){
+            console.log("Unit Does NOT have skills: ", key, value.name);
+        } else {
+            for (const skill of value.skills){
+                // if(skill.rarity === 7 && _.has(skillPassivesList, skill.id.toString())){
+                    if(_.has(skillPassivesList, skill.id.toString())){
+                    // console.log(skill.rarity, skill.id);
+                    setUnit_Skill(oldInfo => [...oldInfo, {
+                        unit_id: parseInt(key),
+                        skill_id: skill.id,
+                        rarity: skill.rarity,
+                        level: skill.level
+                    }]); 
+
+                    checkEnhancement(key, skill.id, enhancementsList);
+                    
+                    // if(value.name === "Olive"){
+                    //     console.log(55);
+                    // }
+
+
+                }
+            }
+        }
+        
+
+        // subKeys differ for different rarity so we're using only the unit's
+        // first key as an identifier for the unit
         _.forOwn(value.entries, (subValue, subKey) => {
             if(subValue.rarity === 7){
                 setUnit_Stat(oldInfo => [ ...oldInfo, {

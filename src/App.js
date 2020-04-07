@@ -16,6 +16,8 @@ function App() {
     "https://raw.githubusercontent.com/aEnigmatic/ffbe/master/equipment.json";
   const URL_MATERIAS =
     "https://raw.githubusercontent.com/aEnigmatic/ffbe/master/materia.json";
+  const URL_ENHANCEMENTS =
+    "https://raw.githubusercontent.com/aEnigmatic/ffbe/master/enhancements.json";
 
   const [unitList, setUnitList] = useState("");
   useEffect(() => {
@@ -247,6 +249,7 @@ function App() {
         URL_MATERIAS = {URL_MATERIAS}
         URL_PASSIVES = {URL_PASSIVES}
         URL_UNITS = {URL_UNITS}
+        URL_ENHANCEMENTS = {URL_ENHANCEMENTS}
       />
     </div>
   );
