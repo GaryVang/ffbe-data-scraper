@@ -8,16 +8,16 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS}) => 
     
     //--------------------------Test Area
    
-    // const [armor, setArmor] = useState([]);
-    // useEffect(() => console.log('equipment: ', armor), [armor]);
+    // const [equippable, setEquippable] = useState([]); // 1 but needs a test; 1st test successful
+    // useEffect(() => console.log('equipment: ', equippable), [equippable]);
 
     //-------------------------End Test Area
 
     //Tables 19 total: 3 Core Tables, 15 sub, 1 subsub
     // insert order
-    // prettier-ignore
-    const [unit, setUnit] = useState([]); // 1 = completed
-    const [equippable, setEquippable] = useState([]); // 1 but need a test
+    // prettier-ignore does not work
+    const [unit, setUnit] = useState([]); // 1 = completed; special char test completed
+    const [equippable, setEquippable] = useState([]); // 1 but needs a test; 1st test successful; 2nd successful
     const [skill_passive, setSkill_Passive] = useState([]); // 1
     
 
@@ -30,12 +30,12 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS}) => 
         const [materia, setMateria] = useState([]); // 1
             //next 2
             const [materia_unit_restriction, setMateria_Unit_Restriction] = useState([]); // 1
-            const [weapon_element_inflict, setWeapon_Element_Inflict] = useState([]);
-            const [weapon_status_inflict, setWeapon_Status_Inflict] = useState([]);
+            const [weapon_element_inflict, setWeapon_Element_Inflict] = useState([]); // 1
+            const [weapon_status_inflict, setWeapon_Status_Inflict] = useState([]); // 1
             const [weapon_variance, setWeapon_Variance] = useState([]); // Make sure table is ready for insert
             const [equipment_option, setEquipment_Option] = useState([]); // 1
             const [skill_requirement, setSkill_Requirement] = useState([]); // 1
-            const [equippable_skill, setEquippable_Skill] = useState([]); // .5 ; do equipment
+            const [equippable_skill, setEquippable_Skill] = useState([]); // 1 Tests for both mat and eq completed
             const [skill_unit_restriction, setSkill_Unit_Restriction] = useState([]); // 1
             const [unit_skill, setUnit_Skill] = useState([]);
             const [unit_role, setUnit_Role] = useState([]); // 1
@@ -64,49 +64,95 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS}) => 
         _.forOwn(unitsList, (value, key) => {
             // console.log(typeof key);
             // if(value.rarity_max === 7 && (key == 401006805 || key == 401008405)){
-            if(value.rarity_max === 7 && /^[a-zA-Z0-9-()'+&è ]*$/.test(value.name) == true){
+            if(value.rarity_max === 7 && /^[a-zA-Z0-9-()'+&è.é ]*$/.test(value.name) == true){
                 // console.log(key);
                 unitInsertPrep(value, key);
             }
+            // else if (value.rarity_max === 7){ // Test rejected units for unspecified special characters
+            //     console.log(value.name);
+            // }
         });
 
         _.forOwn(skillPassivesList, (value, key) => {
-            if(/^[a-zA-Z0-9-()'+&è ]*$/.test(value.name) == true){
+            if(/^[a-zA-Z0-9-()-\[\]'+&è!:./%,↑?âÜé ]*$/.test(value.name) == true){
                 skillPassivesInsertPrep(value, key);
+                // if(key === "231410"){
+                //     console.log(1, value.name);
+                // }
             }
+            // else { //Checks rejected for unspecified special characters
+            //     console.log(value.name);
+            // }
         });
 
-        _.forOwn(equipmentsList, (value, key, skillPassivesList) => {
-            // if(/^[a-zA-Z0-9- ]*$/.test(value.name) == true && key == 403041100){
-            if(/^[a-zA-Z0-9-()'+&è.Üá:ô  ]*$/.test(value.name) == true){
-                equipmentsInsertPrep(value, key);
+        
+//-------------------------------------------------------------------------------------------------------------Requires API setup to complete
+        // Inserts all possible weapon variances into TABLE weapon_variance
+        // Then retrieves it.
+        let dmgVarArr = [];
+        _.forOwn(equipmentsList, (value, key) => {
+            if(/^[a-zA-Z0-9-()'+&è.Üá:ô\s ]*$/.test(value.name) == true && 
+                    value.type_id <= 16 && 
+                    value.type_id > 0 && 
+                    value.dmg_variance != null){
+                if(!_.findIndex(dmgVarArr, (o) => {return _.isMatch(o, {lower_limit: value.dmg_variance[0], upper_limit: value.dmg_variance[1], type: value.type_id})}) > -1){
+                    dmgVarArr.push({
+                        lower_limit: value.dmg_variance[0],
+                        upper_limit: value.dmg_variance[1],
+                        type: value.type_id,
+                    });
+                } 
             } 
-            // else{
+        });
+        // console.log(dmgVarArr);
+        // Retrieve updated list of weapon_variances via api call
+
+
+        _.forOwn(equipmentsList, (value, key) => {
+            // if(/^[a-zA-Z0-9- ]*$/.test(value.name) == true && key == 403041100){
+            if(/^[a-zA-Z0-9-()'+&è.Üá:ô\s ]*$/.test(value.name) == true){ // \s is for Copper Cuirass
+                equipmentsInsertPrep(value, key);
+                if(value.skills != null){
+                    hasPassiveSkill(value, key, skillPassivesList);
+                } 
+            } 
+            // else if(key === '406000200') { // 406000200;  Copper Cuirass ends with a space
+            //     console.log("Data Entry Error! ", value.name);
+            // }
+            // else {
             //     console.log(value.name);
             // }
         });
 
         _.forOwn(materiasList, (value, key) => {
-            if(/^[a-zA-Z0-9-()'+&è ]*$/.test(value.name) == true && hasPassiveSkill(value, key, skillPassivesList)){
+            if(/^[a-zA-Z0-9-()'+&è!%/:↑ ]*$/.test(value.name) == true && hasPassiveSkill(value, key, skillPassivesList)){
                 materiasInsertPrep(value, key);
-            }
+            } 
+            // else { // test to see if name contained unspecified special character(s)
+            //     console.log(2, value.name);
+            // }
         });
     };
 
-    const hasPassiveSkill = (value, key, skillPassivesList) => {
+    const hasPassiveSkill = (value, key, skillPassivesList) => { // Uber Falcon Blade: key=302010900
         let pFlag = false;
         // if(key == 504010010){
         //     console.log( key);
         // }
         for(let i=0; i<(value.skills).length;i++){
-            if( _.has(skillPassivesList, value.skills[i].toString()) ){
-                // console.log(value.name);
+            if( _.has(skillPassivesList, value.skills[i].toString()) && (/^[a-zA-Z0-9-()'+&è.Üá:ô,%?!/↑  ]*$/.test(skillPassivesList[value.skills[i]].name) == true)){
+                // console.log(skillPassivesList[value.skills[i]].name);
                 setEquippable_Skill(oldInfo => [...oldInfo, {
                     eq_id: parseInt(key),
                     skill_id: value.skills[i]
                 }]);
                 pFlag = true;
-            }
+            } 
+            // Checks if rejected passive skill was rejected due to a special character/foreign name
+            // else if ( _.has(skillPassivesList, value.skills[i].toString())){ // SAVE: test 
+            //     console.log(1);
+            //     console.log(skillPassivesList[value.skills[i]].name);
+            // }
         }
         return pFlag;
     }
@@ -145,7 +191,7 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS}) => 
         }
     };
 
-    const equipmentsInsertPrep = (value, key, skillPassivesList) => {
+    const equipmentsInsertPrep = (value, key) => {
         
         let elArr = [0,0,0,0,0,0,0,0];
         let statusArr = [0,0,0,0,0,0,0,0];
@@ -212,8 +258,25 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS}) => 
             }
         }
 
-        // console.log(value.name);
-        // console.log(statusArr);
+        if(value.stats.element_inflict != null){
+            for(let el in value.stats.element_inflict){
+                setWeapon_Element_Inflict(oldInfo => [...oldInfo, {
+                    weapon_id: parseInt(key),
+                    element: value.stats.element_inflict[el]
+                }]);  
+            }
+        }
+
+        if(value.stats.status_inflict != null){
+            for(let el in value.stats.status_inflict){
+                setWeapon_Status_Inflict(oldInfo => [...oldInfo, {
+                    weapon_id: parseInt(key),
+                    status: el,
+                    chance: value.stats.status_inflict[el]
+                }]);
+            }
+        }
+
         setEquippable(oldInfo => [...oldInfo, {
             eq_id: parseInt(key),
             name: value.name
@@ -312,13 +375,59 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS}) => 
                 type: value.type_id
             }]);
         }
+
+        // if(value.is_twohanded === false){
+        //     console.log(key, value.dmg_variance);
+        // }
+
+        
+        
     };
 
     const getVariance = (type_id, is_twohanded, dmg_variance) => {
         if(dmg_variance == null){
-
-        } else {
-            // setWeapon_Variance
+            if(is_twohanded === false){
+                switch(type_id) { // 0 will throw an error during db insert and will be rejected
+                    case 1: // Dagger
+                        return 1;
+                    case 2: // Sword
+                        return 2;
+                    case 3: // Great Sword
+                        return 4;
+                    case 4: // Katana
+                        return 6;
+                    case 5: // Staff
+                        return 8;
+                    case 6: // Rod
+                        return 9;
+                    case 7: // Bow: no standard
+                        return 0;
+                    case 8: // Axe
+                        return 11;
+                    case 9: // Hammer
+                        return 13;
+                    case 10: // Spear
+                        return 14;
+                    case 11: // Instrument
+                        return 16;
+                    case 12: // Whip
+                        return 18;
+                    case 13: // Throwing
+                        return 19;
+                    case 14: // Gun
+                        return 20;
+                    case 15: // Mace
+                        return 23;
+                    case 16: // Fist
+                        return 25;
+                }
+            } else { // Currently this block is unreachable, thus unused, due to no cases
+                return 0;
+            }
+        } else {// setWeapon_Variance
+            // update list of variance with insert statement
+            // retrieve list of variances from api is up-to-date
+            
         }
 
         return 0;
