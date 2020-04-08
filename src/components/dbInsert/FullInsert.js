@@ -4,7 +4,7 @@ const _ = require("lodash");
 // import './FullInsert.css';
 
 
-const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_ENHANCEMENTS}) => {
+const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_ENHANCEMENTS, URL_UNIT_LATENT_SKILLS}) => {
     
     //--------------------------Test Area
    
@@ -24,7 +24,7 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_
         const[equipment, setEquipment] = useState([]); // 1
         //next 1
         const [unit_stat, setUnit_Stat] = useState([]); // 1
-        const [weapon, setWeapon] = useState([]); // 1 ; Note: variance_id is set to 1 (if dmg_variance != null)
+        const [weapon, setWeapon] = useState([]); // 1 ; Note: if (dmg_variance != null), variance_id === 1 
         const [armor, setArmor] = useState([]); // 1
         const [accessory, setAccessory] = useState([]); // 1
         const [materia, setMateria] = useState([]); // 1
@@ -44,6 +44,8 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_
                 const [equipment_unit_requirement, setEquipment_Unit_Requirement] = useState([]); // 1
                 const [equipment_sex_requirement, setEquipment_Sex_Requirement] = useState([]); // 1
             
+    // New
+    const [unit_latent_skill, setUnit_Latent_Skill] = useState([]); // 1
 
     const handleOnClick = () => {
         // console.log("Full Insert Clicked!");
@@ -61,6 +63,8 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_
             .then(res => res.data));
         const enhancementsList = (await axios.get(URL_ENHANCEMENTS)
             .then(res => res.data));
+        const unitLatentSkillsList = (await axios.get(URL_UNIT_LATENT_SKILLS)
+        .then(res => res.data));
 
 
             // _.forOwn(enhancementsList, (value, key) => {
@@ -78,7 +82,7 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_
             // undefined check required due to the dev adding unit placeholders wtih incomplete information
             if(value.rarity_max === 7 && /^[a-zA-Z0-9-()'+&è.é ]*$/.test(value.name) == true && value.skills !== undefined){
                 // console.log(key);
-                unitInsertPrep(value, key, skillPassivesList, enhancementsList);
+                unitInsertPrep(value, key, skillPassivesList, enhancementsList, unitLatentSkillsList);
             }
             // else if (value.rarity_max === 7){ // Test rejected units for unspecified special characters
             //     console.log(value.name);
@@ -492,13 +496,33 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_
                     }
                 });
             }
-            
         });
-
-        
     };
 
-    const unitInsertPrep = (value, key, skillPassivesList, enhancementsList) => {
+    //
+    const checkLatentSkills = (unit_id, unitLatentSkillsList, skillPassivesList) => {
+        _.forOwn(unitLatentSkillsList, (value, key) => {
+            if(value.ep_cost === 300 && _.includes(value.units, parseInt(unit_id))){
+                if(_.has(skillPassivesList, value.skill_id.toString())){
+                    // console.log(skillPassivesList[value.skill_id.toString()].name);
+                    const skill_1 = unitLatentSkillsList[value.next_id.toString()];
+                    const skill_2 = unitLatentSkillsList[skill_1.next_id.toString()];
+                    // console.log(1); // 38
+                    setUnit_Latent_Skill(oldInfo => [...oldInfo, {
+                        unit_id: parseInt(unit_id),
+                        skill_base: value.skill_id,
+                        skill_1: skill_1.skill_id,
+                        skill_2: skill_2.skill_id
+                    }]);
+                }
+                // else {// Active ability
+                    
+                // }
+            }
+        })
+    };
+
+    const unitInsertPrep = (value, key, skillPassivesList, enhancementsList, unitLatentSkillsList) => {
         
         let unitTable = {unit_id: parseInt(key), name: value.name, sex: value.sex_id,
             game: value.game, tmr: value.TMR[1], stmr: value.sTMR[1]};
@@ -540,6 +564,8 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_
                 }
             }
         }
+
+        checkLatentSkills(key, unitLatentSkillsList, skillPassivesList);
         
 
         // subKeys differ for different rarity so we're using only the unit's

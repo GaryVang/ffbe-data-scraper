@@ -18,6 +18,8 @@ function App() {
     "https://raw.githubusercontent.com/aEnigmatic/ffbe/master/materia.json";
   const URL_ENHANCEMENTS =
     "https://raw.githubusercontent.com/aEnigmatic/ffbe/master/enhancements.json";
+  const URL_UNIT_LATENT_SKILLS =
+    "https://raw.githubusercontent.com/aEnigmatic/ffbe/master/unit_latent_skills.json";
 
   const [unitList, setUnitList] = useState("");
   useEffect(() => {
@@ -250,6 +252,7 @@ function App() {
         URL_PASSIVES = {URL_PASSIVES}
         URL_UNITS = {URL_UNITS}
         URL_ENHANCEMENTS = {URL_ENHANCEMENTS}
+        URL_UNIT_LATENT_SKILLS = {URL_UNIT_LATENT_SKILLS}
       />
     </div>
   );
