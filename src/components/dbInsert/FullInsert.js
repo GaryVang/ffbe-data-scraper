@@ -47,9 +47,20 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_
     // New
     const [unit_latent_skill, setUnit_Latent_Skill] = useState([]); // 1
 
-    const handleOnClick = () => {
+    const handleOnClick =  () => {
         // console.log("Full Insert Clicked!");
         initialFetch();
+        insert();
+    };
+
+    const insert = () => {
+        // await axios.get("http://localhost:3000/getElement").then(res => console.log(res.data));
+
+
+        // axios.post("http://localhost:3000/insert", {
+            // unit: ,
+            // skill_passive: 
+        // });
     };
 
     const initialFetch = async () => {
