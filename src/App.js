@@ -119,7 +119,7 @@ function App() {
     const propFilter = {
       name: null,
       effects: null,
-      effects_raw: null
+      effects_raw: null 
     };
 
     //removes unnecessary properties

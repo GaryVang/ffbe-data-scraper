@@ -57,10 +57,10 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_
         // await axios.get("http://localhost:3000/getElement").then(res => console.log(res.data));
 
 
-        // axios.post("http://localhost:3000/insert", {
-            // unit: ,
+        axios.post("http://localhost:3001/insert", {
+            unit: equipment_sex_requirement
             // skill_passive: 
-        // });
+        });
     };
 
     const initialFetch = async () => {
