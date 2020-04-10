@@ -4,8 +4,20 @@ const _ = require("lodash");
 // import './FullInsert.css';
 
 
+
 const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_ENHANCEMENTS, URL_UNIT_LATENT_SKILLS}) => {
     
+
+    const [insertReady, setInsertReady] = useState(false);
+    useEffect(() => {
+        if(insertReady === true){
+            console.log("Insert Executed")
+            insert();
+        } else {
+            console.log('Insert Not Ready');
+        }
+        // console.log(unit);
+    }, [insertReady]);
     //--------------------------Test Area
    
     // const [skill_enhancement, setSkill_Enhancement] = useState([]);
@@ -47,20 +59,28 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_
     // New
     const [unit_latent_skill, setUnit_Latent_Skill] = useState([]); // 1
 
-    const handleOnClick =  () => {
-        // console.log("Full Insert Clicked!");
-        initialFetch();
-        insert();
+    const handleOnClick = async () => { 
+         await initialFetch();
+          setInsertReady(true);
     };
 
     const insert = () => {
-        // await axios.get("http://localhost:3000/getElement").then(res => console.log(res.data));
+        // axios.get("http://localhost:3000/getElement").then(res => console.log(res.data));
 
 
-        axios.post("http://localhost:3001/insert", {
+        axios.post("http://localhost:3001/insert", { // Triggers pre-flight
             unit: equipment_sex_requirement
             // skill_passive: 
-        });
+            }, {
+                headers: {
+                    "Accept": "application/json; charset=utf-8",
+                    "Access-Control-Allow-Origin": "*",
+                    "Content-Type": "application/json; charset=utf-8" 
+                }
+            }
+        )
+        .then(res => {console.log(res.data);})
+        .catch(err => {console.log(err);} );
     };
 
     const initialFetch = async () => {
@@ -368,7 +388,7 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_
                         setEquipment_Sex_Requirement(oldInfo => [...oldInfo, {
                             equipment_id: parseInt(key),
                             sex_id: value.requirements[1]
-                        }])
+                        }]);
                     } else {
                         for(let i=0;i<(value.requirements[1]).length;i++){
                             setEquipment_Unit_Requirement(oldInfo => [...oldInfo, {
