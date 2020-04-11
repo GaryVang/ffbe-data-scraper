@@ -3,7 +3,7 @@ const axios = require("axios");
 const _ = require("lodash");
 // import './FullInsert.css';
 
-
+// Add another column to TABLE unit_stat
 
 const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_ENHANCEMENTS, URL_UNIT_LATENT_SKILLS}) => {
     
@@ -62,10 +62,9 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_
     const [skill_passive_effect, setSkill_Passive_Effect] = useState([]); // 1
 
     const handleOnClick = async () => { 
-         await initialFetch();
-          setInsertReady(true);
+        await initialFetch();
+        setInsertReady(true);
 
-        //   console.log("Insert Clicked");
     };
 
     const insert = () => { // Add the rest of the data to POST request
@@ -84,8 +83,30 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_
         //     }
         // )
         axios.post("http://localhost:3001/insertDB", { // Triggers pre-flight
-        skill_passive: skill_passive
-        // skill_passive: 
+            skill_passive: skill_passive,
+            equippable: equippable,
+            unit: unit,
+            equipment: equipment,
+            unit_stat: unit_stat,
+            weapon: weapon,
+            armor: armor,
+            accessory: accessory,
+            materia: materia,
+            materia_unit_restriction: materia_unit_restriction,
+            weapon_element_inflict: weapon_element_inflict,
+            weapon_status_inflict: weapon_status_inflict,
+            // weapon_variance: weapon_variance,
+            equipment_option: equipment_option,
+            skill_requirement: skill_requirement,
+            equippable_skill: equippable_skill,
+            skill_unit_restriction: skill_unit_restriction,
+            unit_skill: unit_skill,
+            unit_role: unit_role,
+            skill_enhancement: skill_enhancement,
+            equipment_unit_requirement: equipment_unit_requirement,
+            equipment_sex_requirement: equipment_sex_requirement,
+            unit_latent_skill: unit_latent_skill,
+            skill_passive_effect: skill_passive_effect
         })
         .then(res => {console.log(res.data);})
         .catch(err => {console.log(err);} );
@@ -113,23 +134,39 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_
             // });
 
 
-
-        _.forOwn(unitsList, (value, key) => {
+        const unitInclusionList = [ "100000102", "100000202", "100000302", "100000403", "100000503",
+            "100000603", "100000703", "100025705", "206000113"];
+        // Make an exclusion list
+        _.forOwn(unitsList, (value, key) => { // 337000805 excluded because tmr is only an active; excluded from equippable list
             // console.log(typeof key);
             // if(value.rarity_max === 7 && (key == 401006805 || key == 401008405)){
 
             // undefined check required due to the dev adding unit placeholders wtih incomplete information
-            if(value.rarity_max === 7 && /^[a-zA-Z0-9-()'+&è.é ]*$/.test(value.name) == true && value.skills !== undefined){
-                // console.log(key);
+            // if(value.rarity_max === 7 && /^[a-zA-Z0-9-()'+&è.é ]*$/.test(value.name) == true && value.skills !== undefined && value.game != null & value.job != null && key !== "337000805"){
+            if(value.TMR != null && /^[a-zA-Z0-9-()'+&è.é ]*$/.test(value.name) == true && value.skills !== undefined && 
+                value.game_id !== 20021 &&
+                key !== "337000805" &&
+                value.game_id !== 20012 && 
+                key !== "332000105" &&
+                value.game_id !== 20007){    
+                    unitInsertPrep(value, key, skillPassivesList, enhancementsList, unitLatentSkillsList);
+            } 
+            else if(_.includes(unitInclusionList, key)){
                 unitInsertPrep(value, key, skillPassivesList, enhancementsList, unitLatentSkillsList);
+                // console.log(key, value.name);
             }
+            // else {console.log(key, value.name);}
             // else if (value.rarity_max === 7){ // Test rejected units for unspecified special characters
             //     console.log(value.name);
             // }
         });
 
         _.forOwn(skillPassivesList, (value, key) => {
-            if(/^[a-zA-Z0-9-()-\[\]'+&è!:./%,↑?âÜé ]*$/.test(value.name) == true){
+            if(/^[a-zA-Z0-9-()-\[\]'+&è!:./%,↑?âÜé ]*$/.test(value.name) == true && 
+            key !== "233800" &&
+            key !== "222800" &&
+            key !== "910388" &&
+            key !== "911035"){ // The Lord of Shadows tmr/strm ability
                 skillPassivesInsertPrep(value, key);
                 // console.log(value.name);
                 // if(key === "231410"){
@@ -173,12 +210,18 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_
 //----------------End of weapon_variance
 
         _.forOwn(equipmentsList, (value, key) => {
+            // if(key === "301000200"){
+            //     console.log(value.name);
+            // }
             // if(/^[a-zA-Z0-9- ]*$/.test(value.name) == true && key == 403041100){
             if(/^[a-zA-Z0-9-()'+&è.Üá:ô\s ]*$/.test(value.name) == true){ // \s is for Copper Cuirass
                 equipmentsInsertPrep(value, key);
                 if(value.skills != null){
                     hasPassiveSkill(value, key, skillPassivesList);
                 } 
+                // else {
+                //     console.log()
+                // }
             } 
             // else if(key === '406000200') { // 406000200;  Copper Cuirass ends with a space
             //     console.log("Data Entry Error! ", value.name);
@@ -189,7 +232,10 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_
         });
 
         _.forOwn(materiasList, (value, key) => {
-            if(/^[a-zA-Z0-9-()'+&è!%/:↑ ]*$/.test(value.name) == true && hasPassiveSkill(value, key, skillPassivesList)){
+            if(/^[a-zA-Z0-9-()'+&è!%/:↑ ]*$/.test(value.name) == true && hasPassiveSkill(value, key, skillPassivesList) &&
+                key !== "1500000052" && // Rico Materia
+                key !== "1500000081"){ // Pop Star Katy mat: Spiritualism
+    
                 materiasInsertPrep(value, key);
             } 
             // else { // test to see if name contained unspecified special character(s)
@@ -292,7 +338,7 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_
 
         if(value.requirements != null){
             for(let i=0; i<(value.requirements).length;i++){
-                for(let j=0; j<(value.requirements[i]).length;j++){
+                // for(let j=0; j<(value.requirements[i]).length;j++){
                     if(value.requirements[i][0] !== "SWITCH"){ // SWITCH = unlocks via SBB (Series Boss Battle)
                         setSkill_Requirement(oldInfo => [...oldInfo, {
                             skill_id: parseInt(key),
@@ -300,7 +346,7 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_
                             eq_id: value.requirements[i][1]
                         }]);
                     }
-                }
+                // }
             }
         }
     };
@@ -320,8 +366,8 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_
                         elArr[1] = value.stats.element_resist[el];
                         break;
                     case "Lightning":
-                            elArr[2] = value.stats.element_resist[el];
-                            break;
+                        elArr[2] = value.stats.element_resist[el];
+                        break;
                     case "Water":
                         elArr[3] = value.stats.element_resist[el];
                         break;
@@ -549,7 +595,7 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_
         // console.log(typeof value.unique);
         setMateria(oldInfo => [...oldInfo, {
             mat_id: parseInt(key),
-            limted: value.unique
+            limited: value.unique
         }]);
 
         setEquippable(oldInfo => [...oldInfo, {
@@ -612,11 +658,19 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_
         })
     };
 
+    // 
     const unitInsertPrep = (value, key, skillPassivesList, enhancementsList, unitLatentSkillsList) => {
+        let unitTable = {};
+        if(value.rarity !== 7){
+            unitTable = {unit_id: parseInt(key), name: value.name, sex_id: value.sex_id,
+                game: value.game, tmr: null, stmr: null};
+            setUnit(oldArray => [...oldArray, unitTable]);
+        } else {
+            unitTable = {unit_id: parseInt(key), name: value.name, sex_id: value.sex_id,
+                game: value.game, tmr: value.TMR[1], stmr: value.sTMR[1]};
+            setUnit(oldArray => [...oldArray, unitTable]);
         
-        let unitTable = {unit_id: parseInt(key), name: value.name, sex: value.sex_id,
-            game: value.game, tmr: value.TMR[1], stmr: value.sTMR[1]};
-        setUnit(oldArray => [...oldArray, unitTable]);
+        
 
         // ----------------unit_role table
         // if(value.roles == null){
@@ -645,19 +699,12 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_
                     }]); 
 
                     checkEnhancement(key, skill.id, enhancementsList);
-                    
-                    // if(value.name === "Olive"){
-                    //     console.log(55);
-                    // }
-
-
                 }
             }
         }
 
         checkLatentSkills(key, unitLatentSkillsList, skillPassivesList);
         
-
         // subKeys differ for different rarity so we're using only the unit's
         // first key as an identifier for the unit
         _.forOwn(value.entries, (subValue, subKey) => {
@@ -718,7 +765,7 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_
                     equipment_type: value.equip[i]
                 }]);
             }
-        // }
+    }
 
     };
 
