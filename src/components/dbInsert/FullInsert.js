@@ -13,6 +13,7 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_
         if(insertReady === true){
             console.log("Insert Executed")
             insert();
+            // setInsertReady(false);
         } else {
             console.log('Insert Not Ready');
         }
@@ -20,8 +21,8 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_
     }, [insertReady]);
     //--------------------------Test Area
    
-    // const [skill_enhancement, setSkill_Enhancement] = useState([]);
-    // useEffect(() => console.log('equipment: ', skill_enhancement), [skill_enhancement]);
+    // const [skill_passive_effect, setSkill_Passive_Effect] = useState([]);
+    // useEffect(() => console.log('equipment: ', skill_passive_effect), [skill_passive_effect]);
 
     //-------------------------End Test Area
 
@@ -58,27 +59,34 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_
             
     // New
     const [unit_latent_skill, setUnit_Latent_Skill] = useState([]); // 1
+    const [skill_passive_effect, setSkill_Passive_Effect] = useState([]); // 1
 
     const handleOnClick = async () => { 
          await initialFetch();
           setInsertReady(true);
+
+        //   console.log("Insert Clicked");
     };
 
-    const insert = () => {
+    const insert = () => { // Add the rest of the data to POST request
         // axios.get("http://localhost:3000/getElement").then(res => console.log(res.data));
 
 
-        axios.post("http://localhost:3001/insert", { // Triggers pre-flight
-            unit: equipment_sex_requirement
-            // skill_passive: 
-            }, {
-                headers: {
-                    "Accept": "application/json; charset=utf-8",
-                    "Access-Control-Allow-Origin": "*",
-                    "Content-Type": "application/json; charset=utf-8" 
-                }
-            }
-        )
+        // axios.post("http://localhost:3001/insert", { // Triggers pre-flight
+        //     skill_passive: skill_passive
+        //     // skill_passive: 
+        //     }, {
+        //         headers: {
+        //             "Accept": "application/json; charset=utf-8",
+        //             "Access-Control-Allow-Origin": "*",
+        //             "Content-Type": "application/json; charset=utf-8" 
+        //         }
+        //     }
+        // )
+        axios.post("http://localhost:3001/insertDB", { // Triggers pre-flight
+        skill_passive: skill_passive
+        // skill_passive: 
+        })
         .then(res => {console.log(res.data);})
         .catch(err => {console.log(err);} );
     };
@@ -123,6 +131,7 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_
         _.forOwn(skillPassivesList, (value, key) => {
             if(/^[a-zA-Z0-9-()-\[\]'+&è!:./%,↑?âÜé ]*$/.test(value.name) == true){
                 skillPassivesInsertPrep(value, key);
+                // console.log(value.name);
                 // if(key === "231410"){
                 //     console.log(1, value.name);
                 // }
@@ -212,15 +221,65 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_
         return pFlag;
     }
 
+    const skillPassiveEffectInsertPrep = (value, key) => {
+
+        for(let i = 0; i < value.effects_raw.length; i++){
+            // if(value.effects_raw[i] === undefined){
+            //     console.log(key);
+            // }
+            setSkill_Passive_Effect(oldInfo => [...oldInfo, {
+                skill_id: parseInt(key),
+                // effect: effectArr[i], 
+                effect_code_1: value.effects_raw[i][0],
+                effect_code_2: value.effects_raw[i][1],
+                effect_code_3: value.effects_raw[i][2],
+                effect_code_4: value.effects_raw[i][3]
+            }]);
+        }
+        
+       // Purpose: To include the effect's description alongside the
+       //           code in the table.
+       // Status: Incomplete
+        // Reason: effects are stored very in a stupid manner:
+                // Ex: Enfeeblements (4 or 5 total) are given their own individual indexes
+                    // instead of being in just a single index like their "code" counterpart
+        // let effectArr = value.effects;
+        // let x = [];
+        // _.forEach(effectArr, (str, i) => {
+        //     if(_.startsWith(str, 'Increase Accuracy by')){
+        //         x.push(i);
+        //         effectArr[i-1] += " and " + effectArr[i];
+        //     }
+        // });
+        // if(x.length > 0){
+        //     _.pullAt(effectArr, x);
+        // } 
+ 
+    };
+
     const skillPassivesInsertPrep = (value, key) => {
         setSkill_Passive(oldInfo => [...oldInfo, {
             skill_id: parseInt(key),
             name: value.name,
             rarity: value.rarity,
             effect: value.effects,
-            effect_code: value.effects_raw,
+            // effect_code: value.effects_raw,
             limited: value.unique
         }]);
+
+        skillPassiveEffectInsertPrep(value, key);
+
+        // const effectArr = value.effects.map();
+
+        // setSkill_Passive_Effect(oldInfo => [...oldInfo, {
+        //     skill_id: parseInt(key),
+        //     effect: ,
+        //     effect_code_1: value.effects_raw[0],
+        //     effect_code_2: value.effects_raw[1],
+        //     effect_code_3: value.effects_raw[2],
+        //     effect_code_4: value.effects_raw[3]
+        // }]);
+
 
         if(value.unit_restriction != null){
             for(let i=0; i<(value.unit_restriction).length; i++){
