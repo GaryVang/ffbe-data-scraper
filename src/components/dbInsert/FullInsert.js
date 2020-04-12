@@ -61,6 +61,10 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_
     const [unit_latent_skill, setUnit_Latent_Skill] = useState([]); // 1
     const [skill_passive_effect, setSkill_Passive_Effect] = useState([]); // 1
 
+    const [unit_stat_5, setUnit_Stat_5] = useState([]);
+    const [unit_stat_6, setUnit_Stat_6] = useState([]);
+    const [unit_stat_7, setUnit_Stat_7] = useState([]);
+
     const handleOnClick = async () => { 
         await initialFetch();
         setInsertReady(true);
@@ -106,7 +110,11 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_
             equipment_unit_requirement: equipment_unit_requirement,
             equipment_sex_requirement: equipment_sex_requirement,
             unit_latent_skill: unit_latent_skill,
-            skill_passive_effect: skill_passive_effect
+            skill_passive_effect: skill_passive_effect,
+
+            unit_stat_5: unit_stat_5,
+            unit_stat_6: unit_stat_6,
+            unit_stat_7: unit_stat_7
         })
         .then(res => {console.log(res.data);})
         .catch(err => {console.log(err);} );
@@ -135,7 +143,7 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_
 
 
         const unitInclusionList = [ "100000102", "100000202", "100000302", "100000403", "100000503",
-            "100000603", "100000703", "100025705", "206000113"];
+            "100000603", "100000703", "100025705", "206000113", "100014703" ];
         // Make an exclusion list
         _.forOwn(unitsList, (value, key) => { // 337000805 excluded because tmr is only an active; excluded from equippable list
             // console.log(typeof key);
@@ -143,12 +151,14 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_
 
             // undefined check required due to the dev adding unit placeholders wtih incomplete information
             // if(value.rarity_max === 7 && /^[a-zA-Z0-9-()'+&è.é ]*$/.test(value.name) == true && value.skills !== undefined && value.game != null & value.job != null && key !== "337000805"){
-            if(value.TMR != null && /^[a-zA-Z0-9-()'+&è.é ]*$/.test(value.name) == true && value.skills !== undefined && 
+            if(value.TMR != null && /^[a-zA-Z0-9-()'+&è.éáÜ ]*$/.test(value.name) == true && value.skills !== undefined && 
+                value.rarity_min >= 3 &&
                 value.game_id !== 20021 &&
                 key !== "337000805" &&
                 value.game_id !== 20012 && 
                 key !== "332000105" &&
-                value.game_id !== 20007){    
+                value.game_id !== 20007 &&
+                value.game_id !== 20008){    
                     unitInsertPrep(value, key, skillPassivesList, enhancementsList, unitLatentSkillsList);
             } 
             else if(_.includes(unitInclusionList, key)){
@@ -161,12 +171,19 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_
             // }
         });
 
+        // Keys 912030 and 912021 were removed because
+        // their effects_code_raw included "910855\t" & "910921\t", respectively
+        // 101250 excluded because [[1, 3, "", [5,  50]]], contains "" instead of a number
+
         _.forOwn(skillPassivesList, (value, key) => {
             if(/^[a-zA-Z0-9-()-\[\]'+&è!:./%,↑?âÜé ]*$/.test(value.name) == true && 
             key !== "233800" &&
-            key !== "222800" &&
-            key !== "910388" &&
-            key !== "911035"){ // The Lord of Shadows tmr/strm ability
+            // key !== "222800" &&
+            // key !== "910388" &&
+            key !== "911035" &&
+            key !== "912021" &&
+            key !== "912030" && // The Lord of Shadows tmr/strm ability
+            key !== "101250"){ 
                 skillPassivesInsertPrep(value, key);
                 // console.log(value.name);
                 // if(key === "231410"){
@@ -232,9 +249,10 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_
         });
 
         _.forOwn(materiasList, (value, key) => {
-            if(/^[a-zA-Z0-9-()'+&è!%/:↑ ]*$/.test(value.name) == true && hasPassiveSkill(value, key, skillPassivesList) &&
+            if(/^[a-zA-Z0-9-()'+&è!%/:↑ ]*$/.test(value.name) == true && 
                 key !== "1500000052" && // Rico Materia
-                key !== "1500000081"){ // Pop Star Katy mat: Spiritualism
+                key !== "1500000081" &&
+                hasPassiveSkill(value, key, skillPassivesList)){ // Pop Star Katy mat: Spiritualism
     
                 materiasInsertPrep(value, key);
             } 
@@ -273,14 +291,45 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_
             // if(value.effects_raw[i] === undefined){
             //     console.log(key);
             // }
-            setSkill_Passive_Effect(oldInfo => [...oldInfo, {
-                skill_id: parseInt(key),
-                // effect: effectArr[i], 
-                effect_code_1: value.effects_raw[i][0],
-                effect_code_2: value.effects_raw[i][1],
-                effect_code_3: value.effects_raw[i][2],
-                effect_code_4: value.effects_raw[i][3]
-            }]);
+            // Conditional is meant to filter out 
+            // console.log(value.effects_raw[i][3][0]);
+
+            // if(typeof value.effects_raw[i][2] === "string"){
+            //     console.log(key, value.name);
+            // }
+
+
+            if(value.effects_raw[i][3][0] !== "none"){
+            // if(Number.isInteger(value.effects_raw[i][3][0])){
+                // console.log(JSON.stringify(value.effects_raw[i][3]));
+                // console.log(value.effects_raw[i][2]);
+                setSkill_Passive_Effect(oldInfo => [...oldInfo, {
+                    skill_id: parseInt(key),
+                    // effect: effectArr[i], 
+                    effect_code_1: value.effects_raw[i][0],
+                    effect_code_2: value.effects_raw[i][1],
+                    effect_code_3: value.effects_raw[i][2],
+                    effect_code_4: JSON.stringify(value.effects_raw[i][3])
+                }]);
+            } 
+            else {
+            // if(value.effects_raw[i][3][0] === "none") { // replace "none" with 0
+                // console.log(value.effects_raw[i][3]);
+                // console.log(JSON.stringify(value.effects_raw[i][3]));
+                // console.log(JSON.stringify([0]));
+                setSkill_Passive_Effect(oldInfo => [...oldInfo, {
+                    skill_id: parseInt(key),
+                    // effect: effectArr[i], 
+                    effect_code_1: value.effects_raw[i][0],
+                    effect_code_2: value.effects_raw[i][1],
+                    effect_code_3: value.effects_raw[i][2],
+                    effect_code_4: JSON.stringify([0])
+                }]);
+            } 
+            // else {
+            //     console.log(value.effects_raw[i][3][0]);
+            // }
+            
         }
         
        // Purpose: To include the effect's description alongside the
@@ -615,7 +664,7 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_
 
     // Checks ability for enhancements,
     // if true, it will add it to skill_enhancement
-    const checkEnhancement = (unit_id, skill_id, enhancementsList) => { 
+    const checkEnhancement = (unit_id, skill_id, enhancementsList, skillPassivesList) => { 
         _.forOwn(enhancementsList, (value, key) => {
             if(value.skill_id_old === skill_id && _.includes(value.units, parseInt(unit_id))){
                 let skill_1 = value.skill_id_new;
@@ -623,12 +672,16 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_
                     if(value.skill_id_old === skill_1 && _.includes(value.units, parseInt(unit_id))){
                         // console.log(name, key, value.skill_id_old);
                         // console.log(name, unit_id, skill_id, skill_1, value.skill_id_new);
-                        setSkill_Enhancement(oldInfo => [...oldInfo, {
-                            unit_id: parseInt(unit_id),
-                            skill_base: skill_id,
-                            skill_1: skill_1,
-                            skill_2: value.skill_id_new
-                        }]);
+
+                        if(_.has(skillPassivesList, value.skill_id_new.toString())){
+
+                            setSkill_Enhancement(oldInfo => [...oldInfo, {
+                                unit_id: parseInt(unit_id),
+                                skill_base: skill_id,
+                                skill_1: skill_1,
+                                skill_2: value.skill_id_new
+                            }]);
+                        }
                     }
                 });
             }
@@ -661,11 +714,72 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_
     // 
     const unitInsertPrep = (value, key, skillPassivesList, enhancementsList, unitLatentSkillsList) => {
         let unitTable = {};
-        if(value.rarity !== 7){
+        // console.log(value.rarity);
+
+        // if(key === "100014703"){
+        //     console.log(key, value.name);
+        // }
+
+        if(value.rarity_max !== 7){
             unitTable = {unit_id: parseInt(key), name: value.name, sex_id: value.sex_id,
                 game: value.game, tmr: null, stmr: null};
             setUnit(oldArray => [...oldArray, unitTable]);
-        } else {
+
+            _.forOwn(value.entries, (subValue, subKey) => {
+                // if(subValue.rarity === 7){
+                    // console.log(subKey);
+                    setUnit_Stat(oldInfo => [ ...oldInfo, {
+                        sub_id: parseInt(subKey),
+                        unit_id: parseInt(key), 
+                        rarity: subValue.rarity, 
+                        hp_base: subValue.stats.HP[1],
+                        hp_pot: subValue.stats.HP[2],
+                        hp_door: subValue.stats.HP[3],
+                        mp_base: subValue.stats.MP[1],
+                        mp_pot: subValue.stats.MP[2],
+                        mp_door: subValue.stats.MP[3],
+                        atk_base: subValue.stats.ATK[1],
+                        atk_pot: subValue.stats.ATK[2],
+                        atk_door: subValue.stats.ATK[3],
+                        def_base: subValue.stats.DEF[1],
+                        def_pot: subValue.stats.DEF[2],
+                        def_door: subValue.stats.DEF[3],
+                        mag_base: subValue.stats.MAG[1],
+                        mag_pot: subValue.stats.MAG[2],
+                        mag_door: subValue.stats.MAG[3],
+                        spr_base: subValue.stats.SPR[1],
+                        spr_pot: subValue.stats.SPR[2],
+                        spr_door: subValue.stats.SPR[3],
+    
+                        fire_resist: subValue.element_resist[0],
+                        ice_resist: subValue.element_resist[1],
+                        lightning_resist: subValue.element_resist[2],
+                        water_resist: subValue.element_resist[3],
+                        wind_resist: subValue.element_resist[4],
+                        earth_resist: subValue.element_resist[5],
+                        light_resist: subValue.element_resist[6],
+                        dark_resist: subValue.element_resist[7],
+    
+                        poison_resist: subValue.status_resist[0],
+                        blind_resist: subValue.status_resist[1],
+                        sleep_resist: subValue.status_resist[2],
+                        silence_resist: subValue.status_resist[3],
+                        paralyze_resist: subValue.status_resist[4],
+                        confusion_resist: subValue.status_resist[5],
+                        disease_resist: subValue.status_resist[6],
+                        petrify_resist: subValue.status_resist[7],
+                        physical_resist: subValue.physical_resist,
+                        magical_resist: subValue.magical_resist,
+                        white_magic_affinity: subValue.magic_affinity[0],
+                        black_magic_affinity: subValue.magic_affinity[1],
+                        green_magic_affinity: subValue.magic_affinity[2],
+                        blue_magic_affinity: subValue.magic_affinity[3]
+                    }]);
+                // }
+            });
+        } else 
+        
+        {
             unitTable = {unit_id: parseInt(key), name: value.name, sex_id: value.sex_id,
                 game: value.game, tmr: value.TMR[1], stmr: value.sTMR[1]};
             setUnit(oldArray => [...oldArray, unitTable]);
@@ -688,8 +802,13 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_
             console.log("Unit Does NOT have skills: ", key, value.name);
         } else {
             for (const skill of value.skills){
+                // if(skill.id === "912021"){
+                    // console.log(skill.name, skill.id);
+                // }
                 // if(skill.rarity === 7 && _.has(skillPassivesList, skill.id.toString())){
-                    if(_.has(skillPassivesList, skill.id.toString())){
+                    if(_.has(skillPassivesList, skill.id.toString()) && 
+                    skill.id !== 912021 &&
+                    skill.id !== 912030){
                     // console.log(skill.rarity, skill.id);
                     setUnit_Skill(oldInfo => [...oldInfo, {
                         unit_id: parseInt(key),
@@ -698,7 +817,7 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_
                         level: skill.level
                     }]); 
 
-                    checkEnhancement(key, skill.id, enhancementsList);
+                    checkEnhancement(key, skill.id, enhancementsList, skillPassivesList);
                 }
             }
         }
@@ -708,8 +827,112 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_
         // subKeys differ for different rarity so we're using only the unit's
         // first key as an identifier for the unit
         _.forOwn(value.entries, (subValue, subKey) => {
-            if(subValue.rarity === 7){
-                setUnit_Stat(oldInfo => [ ...oldInfo, {
+
+            // if(subValue.rarity !== 7 && subValue.rarity !== 6 && subValue.rarity !== 5){
+                
+            // }
+            // Will hit psql "insert" statement's limit if all 3 rarities are included
+            // Rarities: 5, 6, 7
+            // 3 New states are needed to split the data: unit_stat_5, 6, and 7
+            if(subValue.rarity === 7 ){
+                setUnit_Stat_7(oldInfo => [ ...oldInfo, {
+                    sub_id: parseInt(subKey),
+                    unit_id: parseInt(key), 
+                    rarity: subValue.rarity, 
+                    hp_base: subValue.stats.HP[1],
+                    hp_pot: subValue.stats.HP[2],
+                    hp_door: subValue.stats.HP[3],
+                    mp_base: subValue.stats.MP[1],
+                    mp_pot: subValue.stats.MP[2],
+                    mp_door: subValue.stats.MP[3],
+                    atk_base: subValue.stats.ATK[1],
+                    atk_pot: subValue.stats.ATK[2],
+                    atk_door: subValue.stats.ATK[3],
+                    def_base: subValue.stats.DEF[1],
+                    def_pot: subValue.stats.DEF[2],
+                    def_door: subValue.stats.DEF[3],
+                    mag_base: subValue.stats.MAG[1],
+                    mag_pot: subValue.stats.MAG[2],
+                    mag_door: subValue.stats.MAG[3],
+                    spr_base: subValue.stats.SPR[1],
+                    spr_pot: subValue.stats.SPR[2],
+                    spr_door: subValue.stats.SPR[3],
+
+                    fire_resist: subValue.element_resist[0],
+                    ice_resist: subValue.element_resist[1],
+                    lightning_resist: subValue.element_resist[2],
+                    water_resist: subValue.element_resist[3],
+                    wind_resist: subValue.element_resist[4],
+                    earth_resist: subValue.element_resist[5],
+                    light_resist: subValue.element_resist[6],
+                    dark_resist: subValue.element_resist[7],
+
+                    poison_resist: subValue.status_resist[0],
+                    blind_resist: subValue.status_resist[1],
+                    sleep_resist: subValue.status_resist[2],
+                    silence_resist: subValue.status_resist[3],
+                    paralyze_resist: subValue.status_resist[4],
+                    confusion_resist: subValue.status_resist[5],
+                    disease_resist: subValue.status_resist[6],
+                    petrify_resist: subValue.status_resist[7],
+                    physical_resist: subValue.physical_resist,
+                    magical_resist: subValue.magical_resist,
+                    white_magic_affinity: subValue.magic_affinity[0],
+                    black_magic_affinity: subValue.magic_affinity[1],
+                    green_magic_affinity: subValue.magic_affinity[2],
+                    blue_magic_affinity: subValue.magic_affinity[3]
+                }]);
+            } else if (subValue.rarity === 6){
+                setUnit_Stat_6(oldInfo => [ ...oldInfo, {
+                    sub_id: parseInt(subKey),
+                    unit_id: parseInt(key), 
+                    rarity: subValue.rarity, 
+                    hp_base: subValue.stats.HP[1],
+                    hp_pot: subValue.stats.HP[2],
+                    hp_door: subValue.stats.HP[3],
+                    mp_base: subValue.stats.MP[1],
+                    mp_pot: subValue.stats.MP[2],
+                    mp_door: subValue.stats.MP[3],
+                    atk_base: subValue.stats.ATK[1],
+                    atk_pot: subValue.stats.ATK[2],
+                    atk_door: subValue.stats.ATK[3],
+                    def_base: subValue.stats.DEF[1],
+                    def_pot: subValue.stats.DEF[2],
+                    def_door: subValue.stats.DEF[3],
+                    mag_base: subValue.stats.MAG[1],
+                    mag_pot: subValue.stats.MAG[2],
+                    mag_door: subValue.stats.MAG[3],
+                    spr_base: subValue.stats.SPR[1],
+                    spr_pot: subValue.stats.SPR[2],
+                    spr_door: subValue.stats.SPR[3],
+
+                    fire_resist: subValue.element_resist[0],
+                    ice_resist: subValue.element_resist[1],
+                    lightning_resist: subValue.element_resist[2],
+                    water_resist: subValue.element_resist[3],
+                    wind_resist: subValue.element_resist[4],
+                    earth_resist: subValue.element_resist[5],
+                    light_resist: subValue.element_resist[6],
+                    dark_resist: subValue.element_resist[7],
+
+                    poison_resist: subValue.status_resist[0],
+                    blind_resist: subValue.status_resist[1],
+                    sleep_resist: subValue.status_resist[2],
+                    silence_resist: subValue.status_resist[3],
+                    paralyze_resist: subValue.status_resist[4],
+                    confusion_resist: subValue.status_resist[5],
+                    disease_resist: subValue.status_resist[6],
+                    petrify_resist: subValue.status_resist[7],
+                    physical_resist: subValue.physical_resist,
+                    magical_resist: subValue.magical_resist,
+                    white_magic_affinity: subValue.magic_affinity[0],
+                    black_magic_affinity: subValue.magic_affinity[1],
+                    green_magic_affinity: subValue.magic_affinity[2],
+                    blue_magic_affinity: subValue.magic_affinity[3]
+                }]);
+            } else if (subValue.rarity === 5){
+                setUnit_Stat_5(oldInfo => [ ...oldInfo, {
+                    sub_id: parseInt(subKey),
                     unit_id: parseInt(key), 
                     rarity: subValue.rarity, 
                     hp_base: subValue.stats.HP[1],
@@ -756,6 +979,9 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_
                     blue_magic_affinity: subValue.magic_affinity[3]
                 }]);
             }
+            // else {
+            //     console.log(subKey, subValue);
+            // }
         });
         
         // if(value.equip != null){
