@@ -21,8 +21,8 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_
     }, [insertReady]);
     //--------------------------Test Area
    
-    // const [skill_passive_effect, setSkill_Passive_Effect] = useState([]);
-    // useEffect(() => console.log('equipment: ', skill_passive_effect), [skill_passive_effect]);
+    // const [skill_unit_restriction, setSkill_Unit_Restriction] = useState([]); // 1
+    // useEffect(() => console.log('equipment: ', skill_unit_restriction), [skill_unit_restriction]);
 
     //-------------------------End Test Area
 
@@ -178,7 +178,7 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_
         _.forOwn(skillPassivesList, (value, key) => {
             if(/^[a-zA-Z0-9-()-\[\]'+&è!:./%,↑?âÜé ]*$/.test(value.name) == true && 
             key !== "233800" &&
-            // key !== "222800" &&
+            key !== "222800" &&
             // key !== "910388" &&
             key !== "911035" &&
             key !== "912021" &&
