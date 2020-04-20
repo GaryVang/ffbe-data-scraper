@@ -7,19 +7,31 @@ const axios = require("axios");
 const _ = require("lodash");
 
 function App() {
+  //secondary urls are links to the data for during the epsilon nichol event
   const URL_UNITS =
-    "https://raw.githubusercontent.com/aEnigmatic/ffbe/master/units.json";
+    // "https://raw.githubusercontent.com/aEnigmatic/ffbe/master/units.json";
+  "https://raw.githubusercontent.com/aEnigmatic/ffbe/df6a9a42401697cdfcbe96ec3402a9d288a2eb8e/units.json";
   const URL_PASSIVES =
-    "https://raw.githubusercontent.com/aEnigmatic/ffbe/master/skills_passive.json";
+    // "https://raw.githubusercontent.com/aEnigmatic/ffbe/master/skills_passive.json";
+
+  "https://raw.githubusercontent.com/aEnigmatic/ffbe/df6a9a42401697cdfcbe96ec3402a9d288a2eb8e/skills_passive.json";
 
   const URL_EQUIPMENTS =
-    "https://raw.githubusercontent.com/aEnigmatic/ffbe/master/equipment.json";
+    // "https://raw.githubusercontent.com/aEnigmatic/ffbe/master/equipment.json";
+    "https://raw.githubusercontent.com/aEnigmatic/ffbe/df6a9a42401697cdfcbe96ec3402a9d288a2eb8e/equipment.json";
+
   const URL_MATERIAS =
-    "https://raw.githubusercontent.com/aEnigmatic/ffbe/master/materia.json";
+    // "https://raw.githubusercontent.com/aEnigmatic/ffbe/master/materia.json";
+    "https://raw.githubusercontent.com/aEnigmatic/ffbe/df6a9a42401697cdfcbe96ec3402a9d288a2eb8e/materia.json";
+
   const URL_ENHANCEMENTS =
-    "https://raw.githubusercontent.com/aEnigmatic/ffbe/master/enhancements.json";
+    // "https://raw.githubusercontent.com/aEnigmatic/ffbe/master/enhancements.json";
+    "https://raw.githubusercontent.com/aEnigmatic/ffbe/df6a9a42401697cdfcbe96ec3402a9d288a2eb8e/enhancements.json";
+
   const URL_UNIT_LATENT_SKILLS =
-    "https://raw.githubusercontent.com/aEnigmatic/ffbe/master/unit_latent_skills.json";
+    // "https://raw.githubusercontent.com/aEnigmatic/ffbe/master/unit_latent_skills.json";
+    "https://raw.githubusercontent.com/aEnigmatic/ffbe/df6a9a42401697cdfcbe96ec3402a9d288a2eb8e/unit_latent_skills.json";
+
 
   const [unitList, setUnitList] = useState("");
   useEffect(() => {
