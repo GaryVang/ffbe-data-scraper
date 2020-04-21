@@ -287,6 +287,32 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_
 
     const skillPassiveEffectInsertPrep = (value, key) => {
 
+        let effectArr = value.effects;
+        let x = [];
+        _.forEach(effectArr, (str, i) => {
+            if(_.startsWith(str, 'Increase Accuracy by')){
+                x.push(i);
+                effectArr[i-1] += " and " + effectArr[i];
+            }
+        });
+        if(x.length > 0){
+            _.pullAt(effectArr, x);
+        }
+
+        let y = [];
+
+        _.forEach(effectArr, (str, i) => {
+            if(_.startsWith(str, 'Increase Stop resistance by') && 
+            (i+1) < effectArr.length && 
+            _.startsWith(effectArr[i+1], 'Increase Charm resistance by')){
+                y.push(i+1);
+                effectArr[i] += " and " + effectArr[i+1];
+            }
+        });
+        if(y.length > 0){
+            _.pullAt(effectArr, y);
+        } 
+
         for(let i = 0; i < value.effects_raw.length; i++){
             // if(value.effects_raw[i] === undefined){
             //     console.log(key);
@@ -299,13 +325,15 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_
             // }
 
 
+            // Purpose: To include the effect's description alongside its
+            //           code in the table.
             if(value.effects_raw[i][3][0] !== "none"){
             // if(Number.isInteger(value.effects_raw[i][3][0])){
                 // console.log(JSON.stringify(value.effects_raw[i][3]));
                 // console.log(value.effects_raw[i][2]);
                 setSkill_Passive_Effect(oldInfo => [...oldInfo, {
                     skill_id: parseInt(key),
-                    // effect: effectArr[i], 
+                    effect: effectArr[i],
                     effect_code_1: value.effects_raw[i][0],
                     effect_code_2: value.effects_raw[i][1],
                     effect_code_3: value.effects_raw[i][2],
@@ -319,7 +347,7 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_
                 // console.log(JSON.stringify([0]));
                 setSkill_Passive_Effect(oldInfo => [...oldInfo, {
                     skill_id: parseInt(key),
-                    // effect: effectArr[i], 
+                    effect: effectArr[i],
                     effect_code_1: value.effects_raw[i][0],
                     effect_code_2: value.effects_raw[i][1],
                     effect_code_3: value.effects_raw[i][2],
@@ -331,13 +359,17 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_
             // }
             
         }
+
+        // if(value.effects.length !== value.effects_raw.length){
+        //     console.log('length: ', key, value.name, value.effects, value.effects_raw);
+        // }
         
        // Purpose: To include the effect's description alongside the
        //           code in the table.
        // Status: Incomplete
-        // Reason: effects are stored very in a stupid manner:
+        // Reason: effects are stored in a very stupid manner:
                 // Ex: Enfeeblements (4 or 5 total) are given their own individual indexes
-                    // instead of being in just a single index like their "code" counterpart
+                //      instead of being in just a single index like their "code" counterpart
         // let effectArr = value.effects;
         // let x = [];
         // _.forEach(effectArr, (str, i) => {
@@ -348,7 +380,27 @@ const FullInsert = ({URL_EQUIPMENTS, URL_MATERIAS, URL_PASSIVES, URL_UNITS, URL_
         // });
         // if(x.length > 0){
         //     _.pullAt(effectArr, x);
+        // }
+
+        // let y = [];
+
+        // _.forEach(effectArr, (str, i) => {
+        //     if(_.startsWith(str, 'Increase Stop resistance by') && 
+        //     (i+1) < effectArr.length && 
+        //     _.startsWith(effectArr[i+1], 'Increase Charm resistance by')){
+        //         y.push(i+1);
+        //         effectArr[i] += " and " + effectArr[i+1];
+        //     }
+        // });
+        // if(y.length > 0){
+        //     _.pullAt(effectArr, y);
         // } 
+
+
+
+        // if(effectArr.length !== value.effects_raw.length){
+        //     console.log('length: ', key, value.name, value.effects, value.effects_raw);
+        // }
  
     };
 
