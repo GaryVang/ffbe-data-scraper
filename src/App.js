@@ -227,18 +227,27 @@ function App() {
 
   return (
     <div className="App" style={appStyle}>
-      <label>FFBE Data Scrapper</label>
+      <label className='app-header'>FFBE Data Scrapper</label>
       <div>
         <input
           type="text"
           value={searchField}
           onChange={handleSearchFieldChange}
           onKeyDown={handleKeyDown}
+          placeholder='Ex: Esther'
         />
         <button onClick={handleSearch}>Search</button>
-        <button onClick={handleClear}>Clear</button>
+        <button className='btn-clear' onClick={handleClear}>Clear</button>
+        {/* <FullInsert 
+        URL_EQUIPMENTS = {URL_EQUIPMENTS}
+        URL_MATERIAS = {URL_MATERIAS}
+        URL_PASSIVES = {URL_PASSIVES}
+        URL_UNITS = {URL_UNITS}
+        URL_ENHANCEMENTS = {URL_ENHANCEMENTS}
+        URL_UNIT_LATENT_SKILLS = {URL_UNIT_LATENT_SKILLS}
+      /> */}
       </div>
-      <label>Unit Info</label>
+      <label className='textarea-unit-info'>Unit Info</label>
       <textarea
         className="unit-textarea"
         rows="30"
@@ -248,7 +257,7 @@ function App() {
         value={unitTextArea}
         readOnly
       />
-      <label>Unit Passives</label>
+      <label className='textarea-unit-passive'>Unit Passives</label>
       <textarea
         className="passive-textarea"
         rows="30"
@@ -272,7 +281,7 @@ function App() {
 
 
 const appStyle = {
-  background: "lightblue",
+  // background: "lightblue",
   display: "flex",
   flexDirection: "column",
   alignItems: "center"
